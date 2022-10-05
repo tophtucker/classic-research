@@ -14,11 +14,25 @@ section {
   display: none;
 }
 
+#progress {
+  z-index: 3;
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 100px;
+  height: 100%;
+}
+
 </style>
 
 <section style="font-size: 4em;padding:1.5em 2em;">
   <p>Five thousand years<br/>of graphics
 </section>
+
+<svg id="progress">
+  <circle class="time" r="10" cx="50" stroke="black" fill="white" stroke-width="2"></circle>
+  <circle class="scroll" r="10" cx="50" fill="black" stroke="white" stroke-width="2"></circle>
+</svg>
 
 <script src="d3.v3.js"></script>
 <script src="stack.v1.js"></script>
@@ -40,6 +54,19 @@ import define from "https://api.observablehq.com/d/c9524c2bd990f0d7.js?v=4";
   const formatYear = await main.value("formatYear");
   const images = await main.value("images");
   const imageMap = new Map(images);
+  const quotes = await main.value("quotes");
+  const quoteMap = new Map(quotes);
+
+  const slides = data.length + 1;
+  const range = [100, innerHeight - 100]
+  const scrollScale = d3.scaleLinear([0, (slides - 1) * innerHeight], range);
+  const timeScale = d3.scaleLinear([0, 25], range).clamp(true);
+
+  d3.timer(function() {
+    const time = ((new Date() - d3.timeHour(new Date())) / (1000 * 60)) % 30;
+    d3.select("#progress .time").attr("cy", timeScale(time));
+    d3.select("#progress .scroll").attr("cy", scrollScale(scrollY));
+  });
   
   document.body.append(htl.html`${data.map(d => htl.html`
 <section style="padding-left: 300px; padding-top: 1em; padding-right: 1em;">
@@ -71,6 +98,7 @@ import define from "https://api.observablehq.com/d/c9524c2bd990f0d7.js?v=4";
   <div><big>${d.title}</big></div>
   <div><em><small>${d.source}</small></em></div>
   ${imageMap.has(d.title) ? htl.html`<img src=${imageMap.get(d.title)} style="max-width: 70%; max-height: 60vh; margin-top: 1em;" />` : ""}
+  ${quoteMap.has(d.title) ? htl.html`<div style="margin-top: 2em; font-size: 80%; line-height: 1.1; max-width: 80%">${quoteMap.get(d.title)}</div>` : ""}
 </section>`)}`)
 
   const mystack = stack().size([1792, 1120]);
