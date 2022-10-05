@@ -12,19 +12,61 @@ section {
 
 </style>
 
-<section style="text-align:center;padding-top:5em;">
-  <p style="font-size:120%;"><b><a href="https://github.com/mbostock/stack">Stack</a></b> is a presentation library<br> with simple, scroll-based navigation.
-  <p class="grey">Scroll down to continue.
-</section>
-
-<section style="padding:5em 9em;">
-  <p class="grey">Multiple key presses will skip multiple slides.
+<section>
+  <p>Five thousand years<br/>of data visualization
 </section>
 
 <script src="d3.v3.js"></script>
 <script src="stack.v1.js"></script>
-<script>
+<script type="module">
 
-var mystack = stack();
+import * as Plot from "https://cdn.skypack.dev/@observablehq/plot@0.6";
+import * as htl from 'https://cdn.skypack.dev/htl';
+import * as d3 from "https://cdn.skypack.dev/d3@7";
+
+import {Runtime, Inspector} from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@4/dist/runtime.js";
+import define from "https://api.observablehq.com/d/c9524c2bd990f0d7.js?v=4";
+
+(async () => {
+  const runtime = new Runtime();
+  const main = runtime.module(define);
+  const data = await main.value("parsed");
+  const yearToAgo = await main.value("yearToAgo");
+  const agoToYear = await main.value("agoToYear");
+  const formatYear = await main.value("formatYear");
+
+  console.log(data);
+  
+  document.body.append(htl.html`${data.map(d => htl.html`
+<section style="padding-left: 150px;">
+  ${Plot.plot({
+    style: {
+      background: "none",
+      position: "absolute",
+      top: 20,
+      left: 20
+    },
+    height: 720,
+    width: 400,
+    marginLeft: 50,
+    marginRight: 340,
+    y: {
+      type: "log",
+      ticks: [-2700, 1, 1000, 1500, 1600, 1700, 1800, 1900, 1950, 1980, 2000, 2010, 2017].map(yearToAgo),
+      tickFormat: (d) => formatYear(agoToYear(d)),
+      tickSize: 0,
+      label: null
+    },
+    marks: [
+      Plot.tickY(data, { y: "yearsAgo", stroke: "#333"}),
+      Plot.tickY(data.filter(dd => dd.title === d.title), {y: "yearsAgo", strokeWidth: 2, stroke: "white"})
+    ]
+  })}
+  <div>${d.title}</div>
+  <em><small>${d.source}<br/>${d.date}</small></em>
+</section>`)}`)
+
+  const mystack = stack();
+})();
 
 </script>
