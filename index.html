@@ -4,8 +4,7 @@
 <style>
 
 section {
-  background: #000;
-  color: #fff;
+  background: white;
   padding: 1em;
   font-family: "PT Serif", Baskerville, Georgia;
   font-size: 1.5em;
@@ -17,7 +16,7 @@ section {
 
 </style>
 
-<section style="font-size: 4em;padding:2em;">
+<section style="font-size: 4em;padding:1.5em 2em;">
   <p>Five thousand years<br/>of graphics
 </section>
 
@@ -43,13 +42,13 @@ import define from "https://api.observablehq.com/d/c9524c2bd990f0d7.js?v=4";
   const imageMap = new Map(images);
   
   document.body.append(htl.html`${data.map(d => htl.html`
-<section style="padding-left: 200px;">
+<section style="padding-left: 300px; padding-top: 1em; padding-right: 1em;">
   ${Plot.plot({
     style: {
       background: "none",
       position: "absolute",
-      top: 100,
-      left: 20,
+      top: 70,
+      left: 70,
       fontSize: 20,
     },
     height: innerHeight - 200,
@@ -64,14 +63,14 @@ import define from "https://api.observablehq.com/d/c9524c2bd990f0d7.js?v=4";
       label: null
     },
     marks: [
-      Plot.tickY(data, { y: "yearsAgo", stroke: "#333", strokeWidth: 2}),
-      Plot.tickY(data.filter(dd => dd.title === d.title), {y: "yearsAgo", strokeWidth: 4, stroke: "white"})
+      Plot.tickY(data, { y: "yearsAgo", stroke: "#ccc", strokeWidth: 2}),
+      Plot.tickY(data.filter(dd => dd.title === d.title), {y: "yearsAgo", strokeWidth: 4, stroke: "black"})
     ]
   })}
   <div><small>${d.date}</small></div>
   <div><big>${d.title}</big></div>
   <div><em><small>${d.source}</small></em></div>
-  ${imageMap.has(d.title) ? htl.html`<img src=${imageMap.get(d.title)} style="max-width: 70%; max-height: 70vh; margin-top: 1em;" />` : ""}
+  ${imageMap.has(d.title) ? htl.html`<img src=${imageMap.get(d.title)} style="max-width: 70%; max-height: 60vh; margin-top: 1em;" />` : ""}
 </section>`)}`)
 
   const mystack = stack().size([1792, 1120]);

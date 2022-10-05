@@ -1,3 +1,1 @@
-# stack.js
-
-A presentation library with intuitive, scroll-based navigation.
+Based on https://observablehq.com/@tophtucker/classic-research-in-data-visualization
