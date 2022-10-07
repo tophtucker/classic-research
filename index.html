@@ -3,25 +3,76 @@
 <meta name="viewport" content="width=device-width">
 <style>
 
+body {
+  --leftMargin: 180px;
+  --rightMargin: 60px;
+  --topMargin: 50px;
+}
+
 section {
   background: white;
   padding: 1em;
-  font-family: "PT Serif", Baskerville, Georgia;
+  font-family: Times, serif;
   font-size: 1.5em;
+  padding: var(--topMargin) calc(var(--rightMargin) + 1em) var(--topMargin) calc(var(--leftMargin) + 1em);
+}
+
+section .inner {
+  display: flex; 
+  flex-direction: column;
+  height: 100%;
 }
 
 .indicator {
   display: none;
 }
 
-#progress {
+#progress-wrapper {
+  box-sizing: border-box;
+  padding-top: var(--topMargin);
+  padding-bottom: var(--topMargin);
   z-index: 3;
   position: fixed;
   right: 0;
   top: 0;
-  width: 100px;
-  height: 100%;
+  width: var(--rightMargin);
+  height: 100vh;
 }
+
+#progress {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-left: 2px solid #ccc;
+  overflow: visible;
+}
+
+.source {
+  font-size: smaller;
+  display: flex;
+  justify-content: space-between;
+  line-height: 1.1;
+}
+
+.title {
+  font-size: larger;
+}
+
+.content {
+  min-height: 0;
+  padding-top: 1em;
+  flex-grow: 1;
+}
+
+.timeline-plot {
+  background: none;
+  position: absolute;
+  font-size: 24px;
+  left: 0;
+  top: var(--topMargin);
+  border-right: 2px solid #ccc;
+}
+
 
 </style>
 
@@ -29,10 +80,12 @@ section {
   <p>Five thousand years<br/>of graphics
 </section>
 
-<svg id="progress">
-  <circle class="time" r="10" cx="50" stroke="black" fill="white" stroke-width="2"></circle>
-  <circle class="scroll" r="10" cx="50" fill="black" stroke="white" stroke-width="2"></circle>
-</svg>
+<div id="progress-wrapper">
+  <svg id="progress">
+    <circle class="time" r="10" cx="50" stroke="black" fill="white" stroke-width="2"></circle>
+    <circle class="scroll" r="10" cx="50" fill="black" stroke="white" stroke-width="2"></circle>
+  </svg>
+</div>
 
 <script src="d3.v3.js"></script>
 <script src="stack.v1.js"></script>
@@ -44,6 +97,10 @@ import * as d3 from "https://cdn.skypack.dev/d3@7";
 
 import {Runtime, Inspector} from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@4/dist/runtime.js";
 import define from "https://api.observablehq.com/d/c9524c2bd990f0d7.js?v=4";
+
+const leftMargin = 180;
+const rightMargin = 60;
+const topMargin = 50;
 
 (async () => {
   const runtime = new Runtime();
@@ -58,50 +115,53 @@ import define from "https://api.observablehq.com/d/c9524c2bd990f0d7.js?v=4";
   const quoteMap = new Map(quotes);
 
   const slides = data.length + 1;
-  const range = [100, innerHeight - 100]
+  const range = [0, innerHeight - 2 * topMargin]
   const scrollScale = d3.scaleLinear([0, (slides - 1) * innerHeight], range);
   const timeScale = d3.scaleLinear([0, 25], range).clamp(true);
-
+  d3.select("#progress .time").attr("cx", rightMargin / 2)
+  d3.select("#progress .scroll").attr("cx", rightMargin / 2)
   d3.timer(function() {
     const time = ((new Date() - d3.timeHour(new Date())) / (1000 * 60)) % 30;
     d3.select("#progress .time").attr("cy", timeScale(time));
     d3.select("#progress .scroll").attr("cy", scrollScale(scrollY));
   });
   
-  document.body.append(htl.html`${data.map(d => htl.html`
-<section style="padding-left: 300px; padding-top: 1em; padding-right: 1em;">
-  ${Plot.plot({
-    style: {
-      background: "none",
-      position: "absolute",
-      top: 70,
-      left: 70,
-      fontSize: 20,
-    },
-    height: innerHeight - 200,
-    width: 120,
-    marginLeft: 100,
-    marginRight: 0,
-    y: {
-      type: "log",
-      ticks: [-2700, 1, 1000, 1500, 1600, 1700, 1800, 1900, 1950, 1980, 2000, 2010, 2017].map(yearToAgo),
-      tickFormat: (d) => formatYear(agoToYear(d)),
-      tickSize: 0,
-      label: null
-    },
-    marks: [
-      Plot.tickY(data, { y: "yearsAgo", stroke: "#ccc", strokeWidth: 2}),
-      Plot.tickY(data.filter(dd => dd.title === d.title), {y: "yearsAgo", strokeWidth: 4, stroke: "black"})
-    ]
-  })}
-  <div><small>${d.date}</small></div>
-  <div><big>${d.title}</big></div>
-  <div><em><small>${d.source}</small></em></div>
-  ${imageMap.has(d.title) ? htl.html`<img src=${imageMap.get(d.title)} style="max-width: 70%; max-height: 60vh; margin-top: 1em;" />` : ""}
-  ${quoteMap.has(d.title) ? htl.html`<div style="margin-top: 2em; font-size: 80%; line-height: 1.1; max-width: 80%">${quoteMap.get(d.title)}</div>` : ""}
+  document.body.append(htl.html.fragment`${data.map(d => htl.html`<section>
+  ${plot(d)}
+  <div class="inner">
+    <div class="source">
+      <div>${d.date}${d.source ? ` • ${d.source}` : ""}</div>
+    </div>
+    <div class="title">${d.title}</div>
+    <div class="content">
+      ${imageMap.has(d.title) ? htl.html`<img src=${imageMap.get(d.title)} style="height: 100%; width: 100%; object-fit: contain;" />` : ""}
+      ${quoteMap.has(d.title) ? htl.html`${quoteMap.get(d.title)}` : ""}
+    </div>
+  </div>
 </section>`)}`)
 
   const mystack = stack().size([1792, 1120]);
+
+  function plot(d) {
+    return Plot.plot({
+      className: "timeline-plot",
+      height: innerHeight - 2 * topMargin,
+      width: leftMargin,
+      marginLeft: 130,
+      marginRight: 10,
+      y: {
+        type: "log",
+        ticks: [-2700, 1, 1000, 1500, 1600, 1700, 1800, 1900, 1950, 1980, 2000, 2010, 2017].map(yearToAgo),
+        tickFormat: (d) => formatYear(agoToYear(d)),
+        tickSize: 0,
+        label: null
+      },
+      marks: [
+        Plot.tickY(data, { y: "yearsAgo", stroke: "#ccc", strokeWidth: 2}),
+        Plot.tickY(data.filter(dd => dd.title === d.title), {y: "yearsAgo", strokeWidth: 4, stroke: "black"})
+      ]
+    })
+  }
 })();
 
 </script>
