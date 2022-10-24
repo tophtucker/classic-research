@@ -23,6 +23,22 @@ section .inner {
   height: 100%;
 }
 
+section .inner.era {
+  justify-content: center;
+  font-family: sans-serif;
+}
+
+section .inner.era .title {
+  margin-bottom: 1em;
+  font-weight: bold;
+}
+
+section > img {
+  height: 100%; 
+  width: 100%; 
+  object-fit: contain;
+}
+
 .indicator {
   display: none;
 }
@@ -96,7 +112,7 @@ import * as htl from 'https://cdn.skypack.dev/htl';
 import * as d3 from "https://cdn.skypack.dev/d3@7";
 
 import {Runtime, Inspector} from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@4/dist/runtime.js";
-import define from "https://api.observablehq.com/d/c9524c2bd990f0d7.js?v=4";
+import define from "https://api.observablehq.com/d/29e91a3a274c2eb6.js?v=4";
 
 const leftMargin = 180;
 const rightMargin = 60;
@@ -105,18 +121,9 @@ const topMargin = 50;
 (async () => {
   const runtime = new Runtime();
   const main = runtime.module(define);
-  const data = await main.value("parsed");
-  const yearToAgo = await main.value("yearToAgo");
-  const agoToYear = await main.value("agoToYear");
-  const formatYear = await main.value("formatYear");
-  const images = await main.value("images");
-  const imageMap = new Map(images);
-  const quotes = await main.value("quotes");
-  const quoteMap = new Map(quotes);
-
-  const slides = data.length + 1;
+  const slides = await main.value("slides");
   const range = [0, innerHeight - 2 * topMargin]
-  const scrollScale = d3.scaleLinear([0, (slides - 1) * innerHeight], range);
+  const scrollScale = d3.scaleLinear([0, (slides.length) * innerHeight], range);
   const timeScale = d3.scaleLinear([0, 25], range).clamp(true);
   d3.select("#progress .time").attr("cx", rightMargin / 2)
   d3.select("#progress .scroll").attr("cx", rightMargin / 2)
@@ -126,42 +133,10 @@ const topMargin = 50;
     d3.select("#progress .scroll").attr("cy", scrollScale(scrollY));
   });
   
-  document.body.append(htl.html.fragment`${data.map(d => htl.html`<section>
-  ${plot(d)}
-  <div class="inner">
-    <div class="source">
-      <div>${d.date}${d.source ? ` • ${d.source}` : ""}</div>
-    </div>
-    <div class="title">${d.title}</div>
-    <div class="content">
-      ${imageMap.has(d.title) ? htl.html`<img src=${imageMap.get(d.title)} style="height: 100%; width: 100%; object-fit: contain;" />` : ""}
-      ${quoteMap.has(d.title) ? htl.html`${quoteMap.get(d.title)}` : ""}
-    </div>
-  </div>
-</section>`)}`)
+  document.body.append(htl.html`${slides}`)
 
   const mystack = stack().size([1792, 1120]);
 
-  function plot(d) {
-    return Plot.plot({
-      className: "timeline-plot",
-      height: innerHeight - 2 * topMargin,
-      width: leftMargin,
-      marginLeft: 130,
-      marginRight: 10,
-      y: {
-        type: "log",
-        ticks: [-2700, 1, 1000, 1500, 1600, 1700, 1800, 1900, 1950, 1980, 2000, 2010, 2017].map(yearToAgo),
-        tickFormat: (d) => formatYear(agoToYear(d)),
-        tickSize: 0,
-        label: null
-      },
-      marks: [
-        Plot.tickY(data, { y: "yearsAgo", stroke: "#ccc", strokeWidth: 2}),
-        Plot.tickY(data.filter(dd => dd.title === d.title), {y: "yearsAgo", strokeWidth: 4, stroke: "black"})
-      ]
-    })
-  }
 })();
 
 </script>
