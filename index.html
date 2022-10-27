@@ -134,7 +134,7 @@ const topMargin = 50;
   const slides = await main.value("slides");
   const range = [0, innerHeight - 2 * topMargin]
   const scrollScale = d3.scaleLinear([0, (slides.length) * innerHeight], range);
-  const timeScale = d3.scaleLinear([0, 30], range).clamp(true);
+  const timeScale = d3.scaleLinear([0, 35], range).clamp(true);
   const start = new Date(2022, 9, 27, 11, 55)
   d3.select("#progress .time").attr("cx", rightMargin / 2)
   d3.select("#progress .scroll").attr("cx", rightMargin / 2)
