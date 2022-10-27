@@ -32,6 +32,12 @@ section .inner.era {
   font-family: sans-serif;
 }
 
+section .inner.era-list {
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+}
+
 section .inner.era .title {
   margin-bottom: 1em;
   font-weight: bold;
@@ -128,7 +134,7 @@ const topMargin = 50;
   const slides = await main.value("slides");
   const range = [0, innerHeight - 2 * topMargin]
   const scrollScale = d3.scaleLinear([0, (slides.length) * innerHeight], range);
-  const timeScale = d3.scaleLinear([0, 25], range).clamp(true);
+  const timeScale = d3.scaleLinear([0, 30], range).clamp(true);
   d3.select("#progress .time").attr("cx", rightMargin / 2)
   d3.select("#progress .scroll").attr("cx", rightMargin / 2)
   d3.timer(function() {
