@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<style>
+
+body {
+  --leftMargin: 180px;
+  --rightMargin: 60px;
+  --topMargin: 50px;
+}
+
+section {
+  background: white;
+  padding: 1em;
+  font-family: Times, serif;
+  font-size: 1.5em;
+  padding: var(--topMargin) calc(var(--rightMargin) + 1em) var(--topMargin) calc(var(--leftMargin) + 1em);
+}
+
+section.nopad {
+  padding: 0;
+}
+
+section .inner {
+  display: flex; 
+  flex-direction: column;
+  height: 100%;
+}
+
+section .inner.era {
+  justify-content: center;
+  font-family: sans-serif;
+}
+
+section .inner.era-list {
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+}
+
+section .inner.era .title {
+  margin-bottom: 1em;
+  font-weight: bold;
+}
+
+section > img {
+  height: 100%; 
+  width: 100%; 
+  object-fit: contain;
+}
+
+.indicator {
+  display: none;
+}
+
+#progress-wrapper {
+  box-sizing: border-box;
+  padding-top: var(--topMargin);
+  padding-bottom: var(--topMargin);
+  z-index: 3;
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: var(--rightMargin);
+  height: 100vh;
+}
+
+#progress {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-left: 2px solid #ccc;
+  overflow: visible;
+}
+
+.source {
+  font-size: smaller;
+  display: flex;
+  justify-content: space-between;
+  line-height: 1.1;
+}
+
+.title {
+  font-size: larger;
+}
+
+.content {
+  min-height: 0;
+  padding-top: 1em;
+  flex-grow: 1;
+}
+
+.timeline-plot {
+  background: none;
+  position: absolute;
+  font-size: 24px;
+  left: 0;
+  top: var(--topMargin);
+  border-right: 2px solid #ccc;
+}
+
+
+</style>
+
+<section style="font-size: 4em;padding:1.5em 2em;">
+  <p>…
+</section>
+
+<div id="progress-wrapper">
+  <svg id="progress">
+    <circle class="time" r="10" cx="50" stroke="black" fill="white" stroke-width="2"></circle>
+    <circle class="scroll" r="10" cx="50" fill="black" stroke="white" stroke-width="2"></circle>
+  </svg>
+</div>
+
+<script src="d3.v3.js"></script>
+<script src="stack.v1.js"></script>
+<script type="module">
+
+import * as Plot from "https://cdn.skypack.dev/@observablehq/plot@0.6";
+import * as htl from 'https://cdn.skypack.dev/htl';
+import * as d3 from "https://cdn.skypack.dev/d3@7";
+
+import {Runtime, Inspector} from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@4/dist/runtime.js";
+import define from "https://api.observablehq.com/d/29e91a3a274c2eb6.js?v=4";
+
+const leftMargin = 180;
+const rightMargin = 60;
+const topMargin = 50;
+
+(async () => {
+  const runtime = new Runtime();
+  const main = runtime.module(define);
+  const slides = await main.value("slides");
+  const range = [0, innerHeight - 2 * topMargin]
+  const scrollScale = d3.scaleLinear([0, (slides.length) * innerHeight], range);
+  const timeScale = d3.scaleLinear([0, 35], range).clamp(true);
+  const start = new Date(2022, 9, 27, 11, 55)
+  d3.select("#progress .time").attr("cx", rightMargin / 2)
+  d3.select("#progress .scroll").attr("cx", rightMargin / 2)
+  d3.timer(function() {
+    const time = ((new Date() - start) / (1000 * 60));
+    d3.select("#progress .time").attr("cy", timeScale(time));
+    d3.select("#progress .scroll").attr("cy", scrollScale(scrollY));
+  });
+  
+  document.body.append(htl.html`${slides}`)
+
+  const mystack = stack().size([1792, 1120]);
+
+})();
+
+</script>
